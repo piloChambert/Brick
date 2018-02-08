@@ -81,12 +81,16 @@ function love.load()
 
 end
 
-function love.update(dt)
+inGame = true
+
+function game(dt)
+	width = canvasResolution.width
+	height = canvasResolution.height
+
+
 	ball_x = ball_x + ball_speed_x * dt
 	ball_y = ball_y + ball_speed_y * dt
 
-	width = canvasResolution.width
-	height = canvasResolution.height
 	-- border collision
 	-- left
 	if ball_x - ball_radius < 0 then
@@ -107,7 +111,9 @@ function love.update(dt)
 	end
 
 	-- bottom = lost
-	
+	if ball_y > height then
+		inGame = false
+	end
 
 
 	-- update paddle
@@ -124,6 +130,12 @@ function love.update(dt)
 			ball_speed_x = ball_speed_x + paddle_speed * 0.5
 		end
 
+	end
+end
+
+function love.update(dt)
+	if inGame then
+		game(dt)
 	end
 end
 
@@ -146,6 +158,10 @@ function love.draw()
 	love.graphics.setColor(255, 255, 255, 255)
 
 	love.graphics.print(paddle_speed * 0.5, 0, 50)
+
+	if not inGame then
+		love.graphics.print("GAME OVER", 160, 80)
+	end
 
 	love.graphics.setCanvas()
 	love.graphics.draw(mainCanvas, canvasOffset.x, canvasOffset.y, 0, canvasScale, canvasScale)	
