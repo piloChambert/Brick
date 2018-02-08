@@ -14,6 +14,7 @@ paddle_y = 150
 paddle_width = 24
 paddle_height = 8
 paddle_sprite = love.graphics.newQuad(0, 8, 24, 8, spriteImage:getDimensions())
+paddle_speed = 0
 
 brick_sprite = {
 	love.graphics.newQuad(0, 16, 16, 8, spriteImage:getDimensions()),
@@ -24,8 +25,8 @@ brick_sprite = {
 
 bricks = {
 	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2,
-	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2,
-	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4,
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 2,
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 4,
 	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3	
 }
 
@@ -86,34 +87,41 @@ function love.update(dt)
 
 	width = canvasResolution.width
 	height = canvasResolution.height
+	-- border collision
+	-- left
 	if ball_x - ball_radius < 0 then
 		ball_x = ball_radius
 		ball_speed_x = -ball_speed_x
 	end
 
+	-- right
 	if ball_x + ball_radius >= width then
 		ball_x = width - ball_radius - 1
 		ball_speed_x = -ball_speed_x
 	end
 
+	-- top
 	if ball_y - ball_radius < 0 then
 		ball_y = ball_radius
 		ball_speed_y = -ball_speed_y
 	end
 
-	if ball_y + ball_radius >= height then
-		ball_y = height - ball_radius - 1
-		ball_speed_y = -ball_speed_y
-	end
+	-- bottom = lost
+	
+
 
 	-- update paddle
 	mx, my = love.mouse.getPosition()
+	local old_paddle_x = paddle_x
 	paddle_x = math.min(width - paddle_width - 1, mx / canvasScale)
+	paddle_speed = ((paddle_x - old_paddle_x) / dt) * 0.8 + 0.2 * paddle_speed
 
-
+	-- ball/paddle collision
 	if ball_x >= paddle_x and ball_x <= paddle_x + paddle_width then
 		if ball_y > paddle_y - ball_radius and ball_y <= paddle_y + paddle_height - ball_radius then
 			ball_speed_y = -ball_speed_y
+
+			ball_speed_x = ball_speed_x + paddle_speed * 0.5
 		end
 
 	end
@@ -128,12 +136,16 @@ function love.draw()
 
 	-- bricks
 	for i=1, 20 * 4, 1 do
-		local x = (i - 1) % 20
-		local y = math.floor((i - 1) / 20)
-		love.graphics.draw(spriteImage, brick_sprite[bricks[i]], x * 16, y * 8)
+		if bricks[i] ~=0 then
+			local x = (i - 1) % 20
+			local y = math.floor((i - 1) / 20)
+			love.graphics.draw(spriteImage, brick_sprite[bricks[i]], x * 16, y * 8)
+		end
 	end
 
 	love.graphics.setColor(255, 255, 255, 255)
+
+	love.graphics.print(paddle_speed * 0.5, 0, 50)
 
 	love.graphics.setCanvas()
 	love.graphics.draw(mainCanvas, canvasOffset.x, canvasOffset.y, 0, canvasScale, canvasScale)	
